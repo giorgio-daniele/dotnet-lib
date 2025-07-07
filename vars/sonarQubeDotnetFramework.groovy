@@ -1,19 +1,20 @@
 def call(Map args) {
 
+   // Validate required arguments
     if (!args.repoUrl) {
-      error "repoUrl is required. Please provide the URL of the repository to scan."
+      error "repoUrl is required."
     }
 
     if (!args.scanner) {
-      error "scanner is required. Please provide the path to the SonarQube scanner."
+      error "scanner is required."
     }
 
     if (!args.msbuild) {
-      error "msbuild is required. Please provide the path to MSBuild."
+      error "msbuild is required."
     }
 
     if (!args.nuget) {
-      error "nuget is required. Please provide the path to NuGet."
+      error "nuget is required."
     }
 
     def repoUrl        = args.repoUrl
@@ -51,7 +52,7 @@ def call(Map args) {
         %SCANNER%  begin /k:%PROJECT_KEY% /n:%PROJECT_NAME%
         %NUGET%    restore
         %MSBUILD%  /t:Rebuild /p:TargetFrameworkVersion=%FRAMEWORK_TARGET_VERSION%
-        %SCANNER% end
+        %SCANNER%  end
         endlocal
     """
     echo "Scan completed for .NET Framework project: ${projectName}"

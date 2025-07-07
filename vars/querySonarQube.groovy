@@ -1,5 +1,6 @@
 def call(Map args) {
 
+    // Validate required arguments
     if (!args.repoUrl) {
        error "repoUrl is required. Please provide the URL of the repository to scan."
     }
