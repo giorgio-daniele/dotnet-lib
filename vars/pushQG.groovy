@@ -1,30 +1,19 @@
 def call(Map args) {
 
-    // Validate required arguments
-    if (!args.results) {
-        error "'results' is required."
-    }
-    if (!args.gitlabUrl) {
-        error "'gitlabUrl' is required."
-    }
-    if (!args.projectPath) {
-        error "'projectPath' is required."
-    }
+    def QA_RESULT                 = config.QA_RESULT
+    def APPLICATION_VERSION       = config.APPLICATION_VERSION
+    //def GITLAB_REPORTS_PROJECT_ID = config.GITLAB_REPORTS_PROJECT_ID
+    def gitlabReportUrl           = config.gitlabReportUrl
+    
+    if (!APPLICATION_VERSION.equals("dev")) {
 
-    def results     = args.results
-    def gitlabUrl   = args.gitlabUrl
-    def projectPath = args.projectPath
-    def appVersion  = args.applicationVersion ?: "dev"
-    def isDevBuild  = appVersion == "dev"
-
-    if (!isDevBuild) {
-        def qaResult         = results["quality-assurance.result"]    ?: "N/A"
-        def sonarResult      = results["sonarqube.result"]            ?: "N/A"
-        def sonarReportUrl   = results["sonarqube.report-url"]        ?: "N/A"
-        def sonarDescription = results["sonarqube.description"]       ?: "N/A"
-        def dtResult         = results["dependencytrack.result"]      ?: "N/A"
-        def dtReportUrl      = results["dependencytrack.url"]         ?: "N/A"
-        def dtDescription    = results["dependencytrack.description"] ?: "N/A"
+        def qaResult         = QA_RESULT["quality-assurance.result"]    ?: "N/A"
+        def sonarResult      = QA_RESULT["sonarqube.result"]            ?: "N/A"
+        def sonarReportUrl   = QA_RESULT["sonarqube.report-url"]        ?: "N/A"
+        def sonarDescription = QA_RESULT["sonarqube.description"]       ?: "N/A"
+        def dtResult         = QA_RESULT["dependencytrack.result"]      ?: "N/A"
+        def dtReportUrl      = QA_RESULT["dependencytrack.url"]         ?: "N/A"
+        def dtDescription    = QA_RESULT["dependencytrack.description"] ?: "N/A"
 
         def xmlContent = """
             <?xml version="1.0" encoding="UTF-8"?>
