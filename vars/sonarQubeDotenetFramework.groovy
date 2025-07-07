@@ -6,9 +6,9 @@ def call(Map args) {
 
     def repoUrl        = args.repoUrl
     def netVersion     = args.netVersion ?: params.NET_VERSION
-    def scanner        = args.scanner ?: SCANNER
-    def msbuild        = args.msbuild ?: MSBUILD
-    def nuget          = args.nuget ?: NUGET
+    def scanner        = args.scanner    ?: SCANNER
+    def msbuild        = args.msbuild    ?: MSBUILD
+    def nuget          = args.nuget      ?: NUGET
 
     def repoName       = repoUrl.tokenize('/').last().replace('.git', '')
     def projectKey     = repoName
