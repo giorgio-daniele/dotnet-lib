@@ -1,4 +1,4 @@
-def call(Maps args) {
+def call(Map args) {
 
     /*
     String projectID        = args.projectID
