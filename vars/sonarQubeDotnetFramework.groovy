@@ -1,14 +1,26 @@
 def call(Map args) {
 
     if (!args.repoUrl) {
-       error "repoUrl is required. Please provide the URL of the repository to scan."
+      error "repoUrl is required. Please provide the URL of the repository to scan."
+    }
+
+    if (!args.scanner) {
+      error "scanner is required. Please provide the path to the SonarQube scanner."
+    }
+
+    if (!args.msbuild) {
+      error "msbuild is required. Please provide the path to MSBuild."
+    }
+
+    if (!args.nuget) {
+      error "nuget is required. Please provide the path to NuGet."
     }
 
     def repoUrl        = args.repoUrl
     def netVersion     = args.netVersion ?: params.NET_VERSION
-    def scanner        = args.scanner    ?: SCANNER
-    def msbuild        = args.msbuild    ?: MSBUILD
-    def nuget          = args.nuget      ?: NUGET
+    def scanner        = args.scanner
+    def msbuild        = args.msbuild
+    def nuget          = args.nuget
 
     def repoName       = repoUrl.tokenize('/').last().replace('.git', '')
     def projectKey     = repoName
