@@ -1,10 +1,11 @@
 def call(Maps args) {
 
+    /*
     String projectID        = args.projectID
     String gitlabReportUrl  = args.gitlabReportUrl
     String gitLabToken      = args.gitLabToken
     String gitlabGroup      = args.gitlabGroup
-    String gitlabProject    = args.gitlabProject
+    String gitlabProject    = args.gitlabProject*/
 
     // Default version if no valid tag is found
     def version = "dev"
@@ -35,7 +36,6 @@ def call(Maps args) {
         version = 'dev'
     }
 
-    // --- If the version is not 'dev', check if it already exists on GitLab ---
     if (version != "dev") {
         
         /*
