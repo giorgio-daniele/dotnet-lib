@@ -20,7 +20,7 @@ def call(Map args) {
 
         for /f "delims=" %%H in ('git rev-parse HEAD') do set HASH=%%H
         for /f "delims=" %%T in ('git describe --exact-match --tags !HASH! 2^>nul') do set TAG=%%T
-
+        echo !TAG!
         endlocal
         ''',
         returnStdout: true
