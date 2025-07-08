@@ -6,6 +6,10 @@ def call(Map config) {
     def gitlabReportGroup     = config.gitlabReportGroup
     def gitlabReportProject   = config.gitlabReportProject
 
+    if (QA_RESULT.get("sonarqube.esito") == "KO"){
+        QA_RESULT.put("quality-assurance.esito", "KO")
+    } else QA_RESULT.put("quality-assurance.esito", "OK")
+
     // Extract values from QA_RESULT map with defaults
     def qaResult         = QA_RESULT["quality-assurance.esito"]     ?: "N/A"
     def sonarResult      = QA_RESULT["sonarqube.esito"]             ?: "N/A"
@@ -84,8 +88,6 @@ def call(Map config) {
             --data @!PAYLOAD!                          ^
              "!URL!" > !OUT!
         type !OUT!
-
-        :: Remove temp files
         endlocal
     """
 }
