@@ -51,10 +51,6 @@ def call(Map config) {
     def xml      = "QG${qaResult}_report.xml"
     writeFile file: xml, text: xmlContent
 
-    // URL encode GitLab project path for API usage
-    def projectPath  = "${gitlabGroup}/${gitlabPproject}"
-    def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replaceAll('%', '%%')
-
     // Temp files
     def uuid         = UUID.randomUUID().toString()
     def payloadFile  = "payload_${uuid}.json"
@@ -77,8 +73,8 @@ def call(Map config) {
         @echo off
         setlocal enabledelayedexpansion
 
-        set "PROJECT=${encodedPath}"
-        set "URL=${gitlabReportUrl}/api/v4/projects/!PROJECT!/repository/commits"
+        set "PROJECT_ID=${gitlabReportProjectId}"
+        set "URL=${gitlabReportUrl}/api/v4/projects/!PROJECT_ID!/repository/commits"
         set "PAYLOAD=${payloadFile}"
         set "OUT=${responseFile}"
 
