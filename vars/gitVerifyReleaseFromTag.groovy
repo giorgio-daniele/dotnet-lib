@@ -1,15 +1,14 @@
 def call(Map config) {
 
-    def gitlabReportUrl       = config.gitlabReportUrl
-    def gitlabReportGroup     = config.gitlabReportGroup
-    def gitlabReportProject   = config.gitlabReportProject
-    def version               = "dev"
-    //def gitlabReportProjectID = "${gitlabReportGroup}/${gitlabReportProject}"
+    def gitlabUrl              = config.gitlabUrl
+    def gitlabReportProjectId  = config.gitlabReportProjectId
+    def gitlabReportGroup      = config.gitlabReportGroup
+    def gitlabReportProject    = config.gitlabReportProject
+    def version                = "dev"
 
     /**
       * The following script will inspect last commit with a tag. Once
       * the commit is selected, the tag is returned
-      *
     **/
 
     def tag = bat(
@@ -22,6 +21,7 @@ def call(Map config) {
         for /f "delims=" %%H in ('git rev-parse HEAD') do set HASH=%%H
         for /f "delims=" %%T in ('git describe --exact-match --tags !HASH! 2^>nul') do set TAG=%%T
         echo !TAG!
+
         endlocal
         """,
         returnStdout: true
@@ -29,8 +29,8 @@ def call(Map config) {
 
     /**
       * If the tag is compliant to x.y.z-release, then the application
-      * verison will be set equal to such tag. Any other condition let
-      * the version to be equal to "dev"
+      * version will be set equal to such tag. Any other condition lets
+      * the version be equal to "dev"
     **/
 
     if (tag) {
@@ -42,39 +42,43 @@ def call(Map config) {
     } else {
         version = "dev"
     }
-    
-    /*
-    if (version != "dev") {
-        
-        def apiUrl = "${gitlabReportUrl}/api/v4/projects/${GITLAB_REPORTS_PROJECT_ID}/repository/tree?path=${gitlabGroup}/${gitlabProject}/&ref=master"
 
-        // Call the API via curl and capture the JSON response
-        def response = bat(
-            script: """
-            @echo off
-            curl -k -s -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${apiUrl}"
-            """,
-            returnStdout: true
-        ).trim()
+    if (version == "dev") {
+        return
+    }
 
-        try {
-            // Parse the JSON response using Jenkins built-in method
-            def jsonResponse = readJSON text: response
+    // Only run this block if version is a proper release
+    def apiUrl = "${gitlabUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
 
-            // Check if a folder with the version name already exists
-            def versionExists = jsonResponse.any { it.type == "tree" && it.name == version }
+    def response = bat(
+        script: """
+        @echo off
+        setlocal enabledelayedexpansion
 
-            if (versionExists) {
-                error "Version ${version} was already built previously. You need to update it."
-            } else {
-                echo "Version '${version}' is available."
-            }
+        set "TOKEN=!GITLAB_TOKEN!"
+        set "URL=${apiUrl}"
 
-        } catch (Exception e) {
-            echo "Error parsing JSON response: ${e.message}"
-            error("Aborting due to JSON response processing error.")
+        curl -k -s -H "PRIVATE-TOKEN: !TOKEN!" "!URL!"
+
+        endlocal
+        """,
+        returnStdout: true
+    ).trim()
+
+    try {
+        def jsonResponse  = readJSON text: response
+        def versionExists = jsonResponse.any { it.type == "tree" && it.name == version }
+
+        if (versionExists) {
+            error "Version ${version} was already built previously. You need to update it."
+        } else {
+            echo "Version '${version}' is available."
         }
-    }*/
+
+    } catch (Exception e) {
+        echo "Error parsing JSON response: ${e.message}"
+        error "Aborting due to JSON repsonse processing error"
+    }
 
     return version
 }
