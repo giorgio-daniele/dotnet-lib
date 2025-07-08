@@ -2,9 +2,9 @@ def call(Map config) {
 
     def gitlabReportUrl        = config.gitlabReportUrl
     def gitlabReportProjectId  = config.gitlabReportProjectId
-    def gitlabReportGroup      = config.gitlabReportGroup
-    def gitlabReportProject    = config.gitlabReportProject
-    def version                = "dev"
+    def gitlabGroup      = config.gitlabGroup
+    def gitlabPpoject    = config.gitlabPproject
+    def version          = "dev"
 
     /**
       * The following script will inspect last commit with a tag. Once
@@ -57,7 +57,7 @@ def call(Map config) {
     * report) is already populated.
     **/
 
-    def apiUrl = "${gitlabReportUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
+    def apiUrl = "${gitlabReportUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabGroup}/${gitlabPproject}/&ref=master"
 
     def response = bat(
         script: """
