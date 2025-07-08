@@ -5,11 +5,12 @@ def call(Map config) {
     def gitlabReportUrl       = config.gitlabReportUrl
     def gitlabReportGroup     = config.gitlabReportGroup
     def gitlabReportProject   = config.gitlabReportProject
-
+    
+    /*
     if(APPLICATION_VERSION == "dev") {
         echo "[INFO] Skipping pushQG: running in dev environment"
         return
-    }
+    }*/
 
     if (QA_RESULT.get("sonarqube.esito") == "KO"){
         QA_RESULT.put("quality-assurance.esito", "KO")
