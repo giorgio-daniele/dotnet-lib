@@ -2,9 +2,10 @@ def call(Map config) {
 
     def QA_RESULT             = config.QA_RESULT
     def APPLICATION_VERSION   = config.APPLICATION_VERSION
+    def gitlabReportProjectId = config.gitlabReportProjectId
     def gitlabReportUrl       = config.gitlabReportUrl
-    def gitlabReportGroup     = config.gitlabReportGroup
-    def gitlabReportProject   = config.gitlabReportProject
+    def gitlabGroup           = config.gitlabGroup
+    def gitlabPproject        = config.gitlabPproject
     
     /*
     if(APPLICATION_VERSION == "dev") {
@@ -46,12 +47,12 @@ def call(Map config) {
     """.stripIndent()
 
     // Compose remote file name and local file name
-    def fileName = "${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
+    def fileName = "${gitlabGroup}/${gitlabPproject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
     def xml      = "QG${qaResult}_report.xml"
     writeFile file: xml, text: xmlContent
 
     // URL encode GitLab project path for API usage
-    def projectPath  = "${gitlabReportGroup}/${gitlabReportProject}"
+    def projectPath  = "${gitlabGroup}/${gitlabPproject}"
     def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replaceAll('%', '%%')
 
     // Temp files
