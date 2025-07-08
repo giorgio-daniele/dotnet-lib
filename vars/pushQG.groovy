@@ -39,9 +39,9 @@ def call(Map config) {
         </metadata>
     """.stripIndent()
 
-    // Compose nested file path for GitLab repo (nested folders inside repo)
+    // Compose remote file name and local file name
     def fileName      = "${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
-    def localFileName = "QG${qaResult}_${timestamp}_report.xml"
+    def localFileName = "QG${qaResult}_report.xml"
 
     // Write XML content to flat local file
     writeFile file: localFileName, text: xmlContent
