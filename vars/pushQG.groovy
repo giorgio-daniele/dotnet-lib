@@ -6,7 +6,7 @@ def call(Map config) {
     def gitlabReportGroup     = config.gitlabReportGroup
     def gitlabReportProject   = config.gitlabReportProject
     
-    if (!APPLICATION_VERSION.equals("dev")) {
+    if (!"dev".equals(APPLICATION_VERSION)) {
 
         def qaResult         = QA_RESULT["quality-assurance.esito"]     ?: "N/A"
         def sonarResult      = QA_RESULT["sonarqube.esito"]             ?: "N/A"
@@ -53,7 +53,7 @@ def call(Map config) {
 
         // Define the path on which posting the result
         def projectPath  = gitlabReportGroup + "/" + gitlabReportProject
-        def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replaceAll("%", "%%")
+        def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replace("%", "%%")
 
         // Define the payload of the request
         def payload = [
