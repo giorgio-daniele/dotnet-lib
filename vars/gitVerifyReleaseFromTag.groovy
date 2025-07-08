@@ -1,6 +1,6 @@
 def call(Map config) {
 
-    def gitlabUrl              = config.gitlabUrl
+    def gitlabReportUrl        = config.gitlabReportUrl
     def gitlabReportProjectId  = config.gitlabReportProjectId
     def gitlabReportGroup      = config.gitlabReportGroup
     def gitlabReportProject    = config.gitlabReportProject
@@ -57,7 +57,7 @@ def call(Map config) {
     * report) is already populated.
     **/
 
-    def apiUrl = "${gitlabUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
+    def apiUrl = "${gitlabReportUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
 
     def response = bat(
         script: """
@@ -74,7 +74,7 @@ def call(Map config) {
         returnStdout: true
     ).trim()
 
-    echo "GitLab API response: ${response}"
+    // echo "GitLab API response: ${response}"
 
     try {
         def jsonResponse  = readJSON text: response
