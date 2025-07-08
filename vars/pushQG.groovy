@@ -60,8 +60,8 @@ def call(Map config) {
             branch: "main",
             commit_message: "Add file ${nameFile}",
             actions: [[
-                action:    "create",
-                file_path: "reports/${nameFile}",
+                action:     "create",
+                file_path:  nameFile,
                 content:    readFile(nameFile)
             ]]
         ]
