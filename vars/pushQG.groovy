@@ -2,9 +2,9 @@ def call(Map config) {
 
     def QA_RESULT             = config.QA_RESULT
     def APPLICATION_VERSION   = config.APPLICATION_VERSION
-    def gitlabReportUrl       = config.gitlabReportUrl   // e.g. https://gitlab.com (no trailing slash)
-    def gitlabReportGroup     = config.gitlabReportGroup // e.g. "giorgiodaniele-main"
-    def gitlabReportProject   = config.gitlabReportProject // e.g. "reports"
+    def gitlabReportUrl       = config.gitlabReportUrl
+    def gitlabReportGroup     = config.gitlabReportGroup
+    def gitlabReportProject   = config.gitlabReportProject
 
     // Extract values from QA_RESULT map with defaults
     def qaResult         = QA_RESULT["quality-assurance.esito"]     ?: "N/A"
@@ -35,45 +35,39 @@ def call(Map config) {
         </metadata>
     """.stripIndent()
 
-    // Compose filename with timestamp and sanitized QA result
+    // Compose nested file path for GitLab repo (nested folders inside repo)
     def timestamp     = new Date().format("yyyyMMdd_HHmmss")
     def safeQaResult  = qaResult.replaceAll(/[^a-zA-Z0-9_\-]/, "_")
-    def nameFile      = "${timestamp}/${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${safeQaResult}_report.xml"
-    def dirPath       = nameFile.substring(0, nameFile.lastIndexOf("/"))
+    def repoFilePath  = "${timestamp}/${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${safeQaResult}_report.xml"
 
-    // Create directory path on Windows (quietly)
-    bat "mkdir \"${dirPath}\" >nul 2>&1"
+    // Local flat filename to write XML to workspace root (no nested folders)
+    def localFileName = "QG${safeQaResult}_${timestamp}_report.xml"
 
-    // Write the XML content to the file
-    writeFile file: nameFile, text: xmlContent
+    // Write XML content to flat local file
+    writeFile file: localFileName, text: xmlContent
 
-    // Prepare project path and URL encode it for GitLab API usage
-    def projectPath = "${gitlabReportGroup}/${gitlabReportProject}"
-    def encodedPath = java.net.URLEncoder.encode(projectPath, "UTF-8").replaceAll('%', '%%')
+    // URL encode GitLab project path for API usage
+    def projectPath  = "${gitlabReportGroup}/${gitlabReportProject}"
+    def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replaceAll('%', '%%')
 
-    echo "Publishing report to GitLab: ${nameFile}"
-    echo "Encoded project path: ${encodedPath}"
+    // Temp files
+    def uuid         = UUID.randomUUID().toString()
+    def payloadFile  = "payload_${uuid}.json"
+    def responseFile = "response_${uuid}.json"
 
-    // Generate unique filenames for temporary payload and response files
-    def uuid          = UUID.randomUUID().toString()
-    def payloadFile   = "payload_${uuid}.json"
-    def responseFile  = "response_${uuid}.json"
-
-    // Create JSON payload for GitLab commit API
+    // Define the payload of the request
     def payload = [
         branch: "main",
-        commit_message: "Add file ${nameFile}",
+        commit_message: "Add report ${repoFilePath}",
         actions: [[
             action:    "create",
-            file_path: nameFile,
-            content:   readFile(nameFile)
+            file_path: repoFilePath,
+            content:   readFile(localFileName)
         ]]
     ]
 
-    // Write the JSON payload to a file
+    // Write on file the payload and then issue the request to remote server
     writeFile file: payloadFile, text: groovy.json.JsonOutput.toJson(payload)
-
-    // Use Windows batch with delayed variable expansion to safely handle % signs
     bat """
         @echo off
         setlocal enabledelayedexpansion
@@ -83,15 +77,15 @@ def call(Map config) {
         set "PAYLOAD=${payloadFile}"
         set "OUT=${responseFile}"
 
-        curl -k ^
-            --request POST ^
-            --header "PRIVATE-TOKEN: %GITLAB_TOKEN%"  ^
-            --header "Content-Type: application/json" ^
-            --data @!PAYLOAD! ^
-            "!URL!" > !OUT!
-
+        curl -k                                        ^
+            --request POST                             ^
+            --header "PRIVATE-TOKEN: %GITLAB_TOKEN%"   ^
+            --header "Content-Type: application/json"  ^
+            --data @!PAYLOAD!                          ^
+             "!URL!" > !OUT!
         type !OUT!
 
+        :: Remove temp files
         endlocal
     """
 }
