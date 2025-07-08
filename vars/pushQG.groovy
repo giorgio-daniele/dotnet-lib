@@ -5,8 +5,8 @@ def call(Map config) {
     def gitlabReportUrl       = config.gitlabReportUrl
     def gitlabReportGroup     = config.gitlabReportGroup
     def gitlabReportProject   = config.gitlabReportProject
-    
-    if (!"dev".equals(APPLICATION_VERSION)) {
+
+    // if (!"dev".equals(APPLICATION_VERSION)) {
 
         def qaResult         = QA_RESULT["quality-assurance.esito"]     ?: "N/A"
         def sonarResult      = QA_RESULT["sonarqube.esito"]             ?: "N/A"
@@ -35,27 +35,29 @@ def call(Map config) {
             </metadata>
         """.stripIndent()
 
-        def timestamp = new Date().format("yyyyMMdd_HHmmss")
-
         // Define the name of the file
-        def nameFile = "${timestamp}" + 
-                                  "/" +
-                    gitlabReportGroup + 
-                                  "/" + 
-                  gitlabReportProject + 
-                                  "/" + 
-                  APPLICATION_VERSION + 
-                                "/QG" + 
-                        "${qaResult}" + "_report"
+        def timestamp     = new Date().format("yyyyMMdd_HHmmss")
+        def safeQaResult  = qaResult.replaceAll(/[^a-zA-Z0-9_\-]/, "_")
+        def nameFile      = "${timestamp}/${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${safeQaResult}_report.xml"
+        def dirPath       = nameFile.substring(0, nameFile.lastIndexOf("/"))
 
-        // Write the XML content within the file                
+        // Create folder path if it doesn't exist (Windows)
+        bat "mkdir \"${dirPath}\" >nul 2>&1"
+
+        // Write the XML content to the file
         writeFile file: nameFile, text: xmlContent
 
-        // Define the path on which posting the result
-        def projectPath  = gitlabReportGroup + "/" + gitlabReportProject
-        def encodedPath  = java.net.URLEncoder.encode(projectPath, "UTF-8").replace("%", "%%")
+        def projectPath = "${gitlabReportGroup}/${gitlabReportProject}"
+        def encodedPath = java.net.URLEncoder.encode(projectPath, "UTF-8")
 
-        // Define the payload of the request
+        echo "Publishing report to GitLab: ${nameFile}"
+
+        // Unique filenames for temp files
+        def uuid          = UUID.randomUUID().toString()
+        def payloadFile   = "payload_${uuid}.json"
+        def responseFile  = "response_${uuid}.json"
+
+        // Create JSON payload
         def payload = [
             branch: "main",
             commit_message: "Add file ${nameFile}",
@@ -65,22 +67,27 @@ def call(Map config) {
                 content:    readFile(nameFile)
             ]]
         ]
-        writeFile file: "payload.json", text: groovy.json.JsonOutput.toJson(payload)
 
+        writeFile file: payloadFile, text: groovy.json.JsonOutput.toJson(payload)
+
+        // Send the request via cURL (Windows Batch)
         bat """
             @echo off
             setlocal
             set "PROJECT=${encodedPath}"
             set "URL=${gitlabReportUrl}/api/v4/projects/%PROJECT%/repository/commits"
+            set "PAYLOAD=${payloadFile}"
+            set "OUT=${responseFile}"
 
             curl -k                                       ^
                 --request POST                            ^
-                --header "PRIVATE-TOKEN: %TOKEN%"         ^
+                --header "PRIVATE-TOKEN: %GITLAB_TOKEN%"  ^
                 --header "Content-Type: application/json" ^
-                --data @payload.json                      ^
-                "%URL%" > response.json
-            type response.json
+                --data @%PAYLOAD%                         ^
+                "%URL%" > %OUT%
+
+            type %OUT%
             endlocal
         """
-    }
+    // }
 }
