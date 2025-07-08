@@ -43,9 +43,10 @@ def call(Map config) {
         version = "dev"
     }
 
+    /*
     if (version == "dev") {
         return
-    }
+    }*/
 
     // Only run this block if version is a proper release
     def apiUrl = "${gitlabUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
