@@ -40,12 +40,8 @@ def call(Map config) {
     """.stripIndent()
 
     // Compose nested file path for GitLab repo (nested folders inside repo)
-    def timestamp     = new Date().format("yyyyMMdd_HHmmss")
-    def safeQaResult  = qaResult.replaceAll(/[^a-zA-Z0-9_\-]/, "_")
-    def repoFilePath  = "${timestamp}/${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${safeQaResult}_report.xml"
-
-    // Local flat filename to write XML to workspace root (no nested folders)
-    def localFileName = "QG${safeQaResult}_${timestamp}_report.xml"
+    def fileName      = "${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
+    def localFileName = "QG${qaResult}_${timestamp}_report.xml"
 
     // Write XML content to flat local file
     writeFile file: localFileName, text: xmlContent
@@ -62,10 +58,10 @@ def call(Map config) {
     // Define the payload of the request
     def payload = [
         branch: "main",
-        commit_message: "Add report ${repoFilePath}",
+        commit_message: "Add report ${fileName}",
         actions: [[
             action:    "create",
-            file_path: repoFilePath,
+            file_path: fileName,
             content:   readFile(localFileName)
         ]]
     ]
