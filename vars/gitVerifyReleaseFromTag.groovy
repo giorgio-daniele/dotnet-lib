@@ -1,4 +1,4 @@
-def call(Map args) {
+def call(Map config) {
 
     def gitlabReportUrl       = config.gitlabReportUrl
     def gitlabReportGroup     = config.gitlabReportGroup
