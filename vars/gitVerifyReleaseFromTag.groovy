@@ -1,18 +1,19 @@
 def call(Map args) {
 
-    /*
-    String projectID        = args.projectID
-    String gitlabReportUrl  = args.gitlabReportUrl
-    String gitLabToken      = args.gitLabToken
-    String gitlabGroup      = args.gitlabGroup
-    String gitlabProject    = args.gitlabProject*/
+    def gitlabReportUrl       = config.gitlabReportUrl
+    def gitlabReportGroup     = config.gitlabReportGroup
+    def gitlabReportProject   = config.gitlabReportProject
+    def version               = "dev"
+    //def gitlabReportProjectID = "${gitlabReportGroup}/${gitlabReportProject}"
 
-    // Default version if no valid tag is found
-    def version = "dev"
+    /**
+      * The following script will inspect last commit with a tag. Once
+      * the commit is selected, the tag is returned
+      *
+    **/
 
-    // Get the exact git tag associated with the latest commit
     def tag = bat(
-        script: '''
+        script: """
         @echo off
         setlocal enabledelayedexpansion
 
@@ -22,18 +23,24 @@ def call(Map args) {
         for /f "delims=" %%T in ('git describe --exact-match --tags !HASH! 2^>nul') do set TAG=%%T
         echo !TAG!
         endlocal
-        ''',
+        """,
         returnStdout: true
     ).trim()
+
+    /**
+      * If the tag is compliant to x.y.z-release, then the application
+      * verison will be set equal to such tag. Any other condition let
+      * the version to be equal to "dev"
+    **/
 
     if (tag) {
         if (tag ==~ /^\d+\.\d+\.\d+-release$/) {
             version = tag.split("-")[0]
         } else {
-            version = 'dev'
+            version = "dev"
         }
     } else {
-        version = 'dev'
+        version = "dev"
     }
 
     if (version != "dev") {
