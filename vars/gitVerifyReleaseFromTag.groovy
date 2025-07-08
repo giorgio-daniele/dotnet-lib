@@ -42,10 +42,10 @@ def call(Map config) {
     } else {
         version = "dev"
     }
-
+    
+    /*
     if (version != "dev") {
         
-        /*
         def apiUrl = "${gitlabReportUrl}/api/v4/projects/${GITLAB_REPORTS_PROJECT_ID}/repository/tree?path=${gitlabGroup}/${gitlabProject}/&ref=master"
 
         // Call the API via curl and capture the JSON response
@@ -73,8 +73,8 @@ def call(Map config) {
         } catch (Exception e) {
             echo "Error parsing JSON response: ${e.message}"
             error("Aborting due to JSON response processing error.")
-        }*/
-    }
+        }
+    }*/
 
     return version
 }
