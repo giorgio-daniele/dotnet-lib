@@ -66,6 +66,8 @@ def call(Map config) {
         returnStdout: true
     ).trim()
 
+    echo "GitLab API response: ${response}"
+
     try {
         def jsonResponse  = readJSON text: response
         def versionExists = jsonResponse.any { it.type == "tree" && it.name == version }
