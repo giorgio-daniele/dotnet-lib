@@ -40,11 +40,9 @@ def call(Map config) {
     """.stripIndent()
 
     // Compose remote file name and local file name
-    def fileName      = "${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
-    def localFileName = "QG${qaResult}_report.xml"
-
-    // Write XML content to flat local file
-    writeFile file: localFileName, text: xmlContent
+    def fileName = "${gitlabReportGroup}/${gitlabReportProject}/${APPLICATION_VERSION}/QG${qaResult}_report.xml"
+    def xml      = "QG${qaResult}_report.xml"
+    writeFile file: xml, text: xmlContent
 
     // URL encode GitLab project path for API usage
     def projectPath  = "${gitlabReportGroup}/${gitlabReportProject}"
@@ -62,7 +60,7 @@ def call(Map config) {
         actions: [[
             action:    "create",
             file_path: fileName,
-            content:   readFile(localFileName)
+            content:   readFile(xml)
         ]]
     ]
 
@@ -84,6 +82,9 @@ def call(Map config) {
             --data @!PAYLOAD!                          ^
              "!URL!" > !OUT!
         type !OUT!
+        del "!PAYLOAD!"
+        del "!OUT!"
+        del "${xml}"
         endlocal
     """
 }
