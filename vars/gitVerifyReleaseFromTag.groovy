@@ -48,7 +48,15 @@ def call(Map config) {
         return
     }*/
 
-    // Only run this block if version is a proper release
+    /**
+    * If a tag is found, the pipeline will generate a report for the current build.
+    * However, it's possible that the pipeline gets triggered even when the tag 
+    * already exists. In this case, the pipeline would overwrite previous results, 
+    * since the tag is still valid. To prevent this, we query the SCM to check 
+    * whether the target location (where the pipeline is supposed to write the 
+    * report) is already populated.
+    **/
+
     def apiUrl = "${gitlabUrl}/api/v4/projects/${gitlabReportProjectId}/repository/tree?path=${gitlabReportGroup}/${gitlabReportProject}/&ref=master"
 
     def response = bat(
@@ -70,17 +78,19 @@ def call(Map config) {
 
     try {
         def jsonResponse  = readJSON text: response
-        def versionExists = jsonResponse.any { it.type == "tree" && it.name == version }
 
-        if (versionExists) {
-            error "Version ${version} was already built previously. You need to update it."
-        } else {
-            echo "Version '${version}' is available."
+        // If anything is not found, Gitlab replies at Jenkins with {"message":"404 Tree Not Found"}
+        if (jsonResponse instanceof Map && jsonResponse.message) {}
+        
+        // If anything is found, Gitlab replies with a list of elements
+        if (jsonResponse instanceof List) {
+            def versionExists = jsonResponse.any { it.type == "tree" && it.name == version }
+            if (versionExists) {
+                error "Version ${version} already exists in the repository. You must update the tag."
+            }
         }
-
     } catch (Exception e) {
-        echo "Error parsing JSON response: ${e.message}"
-        error "Aborting due to JSON repsonse processing error"
+        error "Aborting due to JSON repsonse processing error: ${e.message}"
     }
 
     return version
